@@ -1,18 +1,31 @@
 # red_green
 
-TODO: Write a description here
+Crystal port of Roslyn's red/green tree architecture for syntax trees.
+
+## Status
+
+This is an active porting effort. Expect APIs to evolve while the core
+infrastructure and list utilities land.
 
 ## Installation
 
-TODO: Write installation instructions here
+```bash
+shards install
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+Public APIs are not finalized yet. For now, use this repo as the
+implementation home for the red/green tree core and supporting utilities.
 
 ## Development
 
-TODO: Write development instructions here
+```bash
+crystal tool format src spec
+ameba --fix src spec
+ameba src spec
+crystal spec
+```
 
 ## Contributing
 
@@ -24,4 +37,4 @@ TODO: Write development instructions here
 
 ## Contributors
 
-- [your-name-here](https://github.com/dsisnero) - creator and maintainer
+* [dsisnero](https://github.com/dsisnero) - creator and maintainer

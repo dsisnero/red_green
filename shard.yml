@@ -2,7 +2,7 @@ name: red_green
 version: 0.1.0
 
 authors:
-  - your-name-here <your-email-here>
+  - dsisnero <dsisnero@gmail.com>
 
 targets:
   red_green:
@@ -11,3 +11,7 @@ targets:
 crystal: '>= 1.19.1'
 
 license: MIT
+
+development_dependencies:
+  ameba:
+    github: crystal-ameba/ameba
