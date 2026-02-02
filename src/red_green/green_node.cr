@@ -23,6 +23,6 @@ module RedGreen
     abstract def token? : Bool
     abstract def trivia? : Bool
     abstract def get_slot(index : Int32) : GreenNode?
-    abstract def create_red(parent, position : Int32)
+    abstract def create_red(parent : SyntaxNode?, position : Int32) : SyntaxNode
   end
 end
