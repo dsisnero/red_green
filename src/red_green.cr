@@ -5,6 +5,7 @@ require "./red_green/syntax_node"
 require "./red_green/syntax_tree"
 require "./red_green/syntax_token"
 require "./red_green/syntax_trivia"
+require "./red_green/internal_syntax/syntax_list"
 
 module RedGreen
   VERSION = "0.1.0"
