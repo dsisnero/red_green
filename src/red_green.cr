@@ -9,6 +9,7 @@ require "./red_green/syntax_list"
 require "./red_green/separated_syntax_list"
 require "./red_green/internal_syntax/syntax_list"
 require "./red_green/internal_syntax/syntax_list_variants"
+require "./red_green/syntax_node_cache"
 
 module RedGreen
   VERSION = "0.1.0"
