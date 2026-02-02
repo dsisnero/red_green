@@ -34,5 +34,17 @@ module RedGreen
     protected def child_position(slot : Int32) : Int32
       @position + @green.get_child_position(slot)
     end
+
+    def child_nodes : ChildSyntaxList
+      nodes = Array(SyntaxNode).new
+      slot = 0
+      while slot < @green.slot_count
+        if child = get_red_at(slot)
+          nodes << child
+        end
+        slot += 1
+      end
+      ChildSyntaxList.new(self, nodes)
+    end
   end
 end
