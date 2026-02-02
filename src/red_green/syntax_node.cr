@@ -32,15 +32,7 @@ module RedGreen
     end
 
     protected def child_position(slot : Int32) : Int32
-      position = @position
-      index = 0
-      while index < slot
-        if child = @green.get_slot(index)
-          position += child.full_width
-        end
-        index += 1
-      end
-      position
+      @position + @green.get_child_position(slot)
     end
   end
 end
