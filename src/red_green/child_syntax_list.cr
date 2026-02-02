@@ -4,21 +4,46 @@ module RedGreen
     include Enumerable(SyntaxNode)
 
     getter parent : SyntaxNode
-    getter children : Array(SyntaxNode)
 
-    def initialize(@parent : SyntaxNode, @children : Array(SyntaxNode) = [] of SyntaxNode)
+    def initialize(@parent : SyntaxNode)
+    end
+
+    def iterator : Iterator(SyntaxNode)
+      ChildIterator.new(@parent)
     end
 
     def each(&block : SyntaxNode ->)
-      @children.each(&block)
+      iterator.each(&block)
     end
 
     def size : Int32
-      @children.size
+      @parent.green.slot_count
     end
 
     def empty? : Bool
-      @children.empty?
+      @parent.green.slot_count == 0
+    end
+
+    private class ChildIterator
+      include Iterator(SyntaxNode)
+
+      def initialize(@parent : SyntaxNode)
+        @index = 0
+      end
+
+      def next
+        while @index < @parent.green.slot_count
+          node = @parent.child_at(@index)
+          @index += 1
+          return node if node
+        end
+        stop
+      end
+
+      def rewind
+        @index = 0
+        self
+      end
     end
   end
 end

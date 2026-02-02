@@ -35,16 +35,12 @@ module RedGreen
       @position + @green.get_child_position(slot)
     end
 
+    def child_at(slot : Int32) : SyntaxNode?
+      get_red_at(slot)
+    end
+
     def child_nodes : ChildSyntaxList
-      nodes = Array(SyntaxNode).new
-      slot = 0
-      while slot < @green.slot_count
-        if child = get_red_at(slot)
-          nodes << child
-        end
-        slot += 1
-      end
-      ChildSyntaxList.new(self, nodes)
+      ChildSyntaxList.new(self)
     end
   end
 end
