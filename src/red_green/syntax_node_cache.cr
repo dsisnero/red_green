@@ -11,6 +11,8 @@ module RedGreen
     @@strategy : Strategy = Strategy::Weak
     @@weak_cache = Hash(UInt64, WeakRef(GreenNode)).new
     @@strong_cache = Hash(UInt64, GreenNode).new
+    @@strong_keys = Array(UInt64).new
+    @@strong_max_size = 1024
 
     def self.strategy : Strategy
       @@strategy
@@ -18,6 +20,15 @@ module RedGreen
 
     def self.strategy=(value : Strategy)
       @@strategy = value
+    end
+
+    def self.strong_max_size : Int32
+      @@strong_max_size
+    end
+
+    def self.strong_max_size=(value : Int32)
+      @@strong_max_size = value
+      trim_strong_cache
     end
 
     def self.try_get_node(key : UInt64) : GreenNode?
@@ -35,6 +46,15 @@ module RedGreen
         @@weak_cache[key] = WeakRef.new(node)
       when Strategy::Strong
         @@strong_cache[key] = node
+        @@strong_keys << key
+        trim_strong_cache
+      end
+    end
+
+    def self.trim_strong_cache : Nil
+      while @@strong_cache.size > @@strong_max_size && !@@strong_keys.empty?
+        key = @@strong_keys.shift
+        @@strong_cache.delete(key)
       end
     end
 
