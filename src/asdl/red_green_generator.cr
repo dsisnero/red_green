@@ -37,9 +37,10 @@ module Asdl
     private def emit_product(io : String::Builder, name : String, product : ProductNode) : Nil
       fields = product.fields
       node_fields = fields.select { |field| node_field?(field) }
+      node_field_indices = node_fields.each_with_index.to_h
       io << "  class Green" << name << " < RedGreen::GreenNode\n"
       fields.each do |field|
-        io << "    getter " << field.name_or_type << " : " << green_field_type(field) << "\n"
+        io << "    " << green_getter(field) << "\n"
       end
       io << "    def initialize(" << fields.map { |field| "#{field.name_or_type} : #{green_field_type(field)}" }.join(", ") << ")\n"
       io << "      " << fields.map { |field| "@#{field.name_or_type} = #{field.name_or_type}" }.join("\n      ") << "\n"
@@ -47,10 +48,8 @@ module Asdl
       io << "      full_width = 0\n"
       node_fields.each do |field|
         if field.seq?
-          io << "      if #{field.name_or_type}\n"
-          io << "        flags |= #{field.name_or_type}.flags\n"
-          io << "        full_width += #{field.name_or_type}.full_width\n"
-          io << "      end\n"
+          io << "      flags |= #{field.name_or_type}.flags\n"
+          io << "      full_width += #{field.name_or_type}.full_width\n"
         elsif field.opt?
           io << "      if #{field.name_or_type}\n"
           io << "        flags |= #{field.name_or_type}.flags\n"
@@ -85,20 +84,17 @@ module Asdl
       io << "    end\n"
       fields.each do |field|
         if builtin?(field.type)
-          io << "    def " << field.name_or_type << " : " << factory_arg_type(field) << "\n"
-          io << "      @green.as(Green" << name << ")." << field.name_or_type << "\n"
-          io << "    end\n"
+          io << "    " << red_accessor(field, name) << "\n"
         elsif field.seq?
+          idx = node_field_indices[field]
           io << "    def " << field.name_or_type << " : RedGreen::ChildSyntaxList\n"
           io << "      list = @green.as(Green" << name << ")." << field.name_or_type << "\n"
-          io << "      if list\n"
-          io << "        return RedGreen::SyntaxListNode.new(list, self, child_position(#{node_fields.index(field)})).child_nodes\n"
-          io << "      end\n"
-          io << "      RedGreen::ChildSyntaxList.new(RedGreen::SyntaxListNode.new(RedGreen::InternalSyntax::SyntaxList.new([] of RedGreen::GreenNode), self, child_position(#{node_fields.index(field)})))\n"
+          io << "      RedGreen::SyntaxListNode.new(list, self, child_position(#{idx})).child_nodes\n"
           io << "    end\n"
         else
+          idx = node_field_indices[field]
           io << "    def " << field.name_or_type << " : RedGreen::SyntaxNode?\n"
-          io << "      child_at(#{node_fields.index(field)})\n"
+          io << "      child_at(#{idx})\n"
           io << "    end\n"
         end
       end
@@ -129,17 +125,22 @@ module Asdl
 
     private def emit_factory_product(io : String::Builder, name : String, fields : Array(FieldNode)) : Nil
       args = fields.map { |field| "#{field.name_or_type} : #{factory_arg_type(field)}" }.join(", ")
-      io << "    def self.#{underscore(name)}(#{args}) : Red#{name}\n"
+      io << "    def self.make_#{underscore(name)}(#{args}) : Red#{name}\n"
       io << "      green = Green#{name}.new(#{fields.map { |field| factory_to_green(field) }.join(", ")})\n"
       io << "      green.create_red(nil, 0).as(Red#{name})\n"
       io << "    end\n"
     end
 
     private def green_field_type(field : FieldNode) : String
-      return BUILTIN_TYPES[field.type]? || "String" if builtin?(field.type)
+      if builtin?(field.type)
+        base = BUILTIN_TYPES[field.type]? || "String"
+        return "Array(#{base})" if field.seq?
+        return "#{base}?" if field.opt?
+        return base
+      end
 
       if field.seq?
-        "RedGreen::InternalSyntax::SyntaxList?"
+        "RedGreen::InternalSyntax::SyntaxList"
       elsif field.opt?
         "RedGreen::GreenNode?"
       else
@@ -178,6 +179,30 @@ module Asdl
       end
     end
 
+    private def green_getter(field : FieldNode) : String
+      name = field.name_or_type
+      type = green_field_type(field)
+      if bool_field?(field) && !field.seq? && !field.opt?
+        "getter? #{name} : #{type}"
+      else
+        "getter #{name} : #{type}"
+      end
+    end
+
+    private def red_accessor(field : FieldNode, name : String) : String
+      field_name = field.name_or_type
+      return_type = factory_arg_type(field)
+      if bool_field?(field) && !field.seq? && !field.opt?
+        "def #{field_name}? : #{return_type}\n      @green.as(Green#{name}).#{field_name}\n    end"
+      else
+        "def #{field_name} : #{return_type}\n      @green.as(Green#{name}).#{field_name}\n    end"
+      end
+    end
+
+    private def bool_field?(field : FieldNode) : Bool
+      field.type == "bool" || field.type == "singleton"
+    end
+
     private def underscore(name : String) : String
       name.gsub(/([A-Z]+)/) { |match| "_#{match[0].downcase}" }.sub(/^_/, "")
     end
@@ -185,7 +210,13 @@ module Asdl
 
   class FieldNode
     def name_or_type : String
-      name || type
+      raw = name || type
+      case raw
+      when "annotation", "module", "class", "def", "end", "do", "if", "else", "elsif", "case", "when", "while", "until", "for", "break", "next", "return", "self"
+        "#{raw}_"
+      else
+        raw
+      end
     end
   end
 end

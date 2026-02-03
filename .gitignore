@@ -1,4 +1,6 @@
 /lib/
 /bin/
 /.shards/
+.crystal-cache/
+/python_nodes
 *.dwarf

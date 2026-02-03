@@ -7,6 +7,8 @@ authors:
 targets:
   red_green:
     main: src/red_green.cr
+  asdl_codegen:
+    main: bin/asdl_codegen.cr
 
 crystal: '>= 1.19.1'
 
