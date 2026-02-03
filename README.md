@@ -17,6 +17,7 @@ shards install
 
 Public APIs are not finalized yet. For now, use this repo as the
 implementation home for the red/green tree core and supporting utilities.
+See `docs/public_api.md` for the current public surface.
 
 ## Development
 
