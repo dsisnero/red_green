@@ -1,33 +1,31 @@
 module RedGreen
-  # Enumerates the red children of a syntax node.
-  struct ChildSyntaxList
-    include Enumerable(SyntaxNode)
+  # Enumerates the red children of a syntax node, including tokens.
+  struct ChildSyntaxListWithTokens
+    include Enumerable(SyntaxNodeOrToken)
 
     getter parent : SyntaxNode
 
     def initialize(@parent : SyntaxNode)
     end
 
-    def iterator : Iterator(SyntaxNode)
+    def iterator : Iterator(SyntaxNodeOrToken)
       ChildIterator.new(@parent)
     end
 
-    def each(&block : SyntaxNode ->)
+    def each(&block : SyntaxNodeOrToken ->)
       iterator.each(&block)
     end
 
     def size : Int32
-      count = 0
-      each { count += 1 }
-      count
+      @parent.green.slot_count
     end
 
     def empty? : Bool
-      size == 0
+      @parent.green.slot_count == 0
     end
 
     private class ChildIterator
-      include Iterator(SyntaxNode)
+      include Iterator(SyntaxNodeOrToken)
 
       def initialize(@parent : SyntaxNode)
         @index = 0
@@ -35,7 +33,7 @@ module RedGreen
 
       def next
         while @index < @parent.green.slot_count
-          node = @parent.child_at(@index)
+          node = @parent.child_or_token_at(@index)
           @index += 1
           return node if node
         end

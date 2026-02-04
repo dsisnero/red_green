@@ -3,9 +3,11 @@ module RedGreen
   struct SyntaxTokenList
     include Enumerable(SyntaxToken)
 
+    @@empty_items = [] of SyntaxToken
+
     getter items : Array(SyntaxToken)
 
-    def initialize(@items : Array(SyntaxToken) = [] of SyntaxToken)
+    def initialize(@items : Array(SyntaxToken) = @@empty_items)
     end
 
     def each(&block : SyntaxToken ->)
@@ -18,6 +20,18 @@ module RedGreen
 
     def empty? : Bool
       @items.empty?
+    end
+
+    def text : String
+      String.build do |builder|
+        @items.each { |token| builder << token.text }
+      end
+    end
+
+    def full_text : String
+      String.build do |builder|
+        @items.each { |token| builder << token.full_text }
+      end
     end
   end
 end

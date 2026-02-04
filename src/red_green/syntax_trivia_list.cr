@@ -3,9 +3,11 @@ module RedGreen
   struct SyntaxTriviaList
     include Enumerable(SyntaxTrivia)
 
+    @@empty_items = [] of SyntaxTrivia
+
     getter items : Array(SyntaxTrivia)
 
-    def initialize(@items : Array(SyntaxTrivia) = [] of SyntaxTrivia)
+    def initialize(@items : Array(SyntaxTrivia) = @@empty_items)
     end
 
     def each(&block : SyntaxTrivia ->)
@@ -18,6 +20,16 @@ module RedGreen
 
     def empty? : Bool
       @items.empty?
+    end
+
+    def text : String
+      String.build do |builder|
+        @items.each { |trivia| builder << trivia.text }
+      end
+    end
+
+    def full_text : String
+      text
     end
   end
 end

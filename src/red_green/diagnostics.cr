@@ -1,10 +1,29 @@
 module RedGreen
+  # Severity levels for diagnostics.
+  enum DiagnosticSeverity
+    Hidden
+    Info
+    Warning
+    Error
+  end
+
   # Represents a diagnostic message attached to syntax nodes.
   struct Diagnostic
     getter message : String
-    getter position : Int32
+    getter id : String?
+    getter descriptor : DiagnosticDescriptor?
+    getter severity : DiagnosticSeverity
+    getter span : TextSpan
 
-    def initialize(@message : String, @position : Int32)
+    def initialize(@message : String, @severity : DiagnosticSeverity, @span : TextSpan, @id : String? = nil, @descriptor : DiagnosticDescriptor? = nil)
+    end
+
+    def position : Int32
+      @span.start
+    end
+
+    def location(path : String? = nil) : Location
+      Location.new(@span, path)
     end
   end
 

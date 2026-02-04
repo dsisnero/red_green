@@ -6,8 +6,15 @@ This document summarizes the current public surface of `RedGreen`.
 
 - `RedGreen::GreenNode` - Immutable, position-less syntax node.
 - `RedGreen::SyntaxNode` - Position-aware wrapper around green nodes.
-- `RedGreen::SyntaxTree` - Placeholder for tree ownership.
+- `RedGreen::SyntaxTree` - Owns source text and diagnostics.
 - `RedGreen::NodeFlags` - Flags packed into green nodes.
+- `RedGreen::SourceText`
+- `RedGreen::TextSpan`
+- `RedGreen::TextLine`
+- `RedGreen::LinePosition`
+- `RedGreen::Diagnostic`, `RedGreen::DiagnosticSeverity`, `RedGreen::DiagnosticBag`
+- `RedGreen::DiagnosticDescriptor`
+- `RedGreen::Location`
 
 ## Tokens and Trivia
 
@@ -21,6 +28,7 @@ This document summarizes the current public surface of `RedGreen`.
 - `RedGreen::SyntaxList(T)`
 - `RedGreen::SeparatedSyntaxList(T)`
 - `RedGreen::ChildSyntaxList`
+- `RedGreen::ChildSyntaxListWithTokens`
 - `RedGreen::SyntaxNodeOrToken`
 - `RedGreen::SyntaxWalker`
 
@@ -29,11 +37,14 @@ This document summarizes the current public surface of `RedGreen`.
 - `RedGreen::SyntaxNodeCache`
 - `RedGreen::SyntaxDiffer`
 - `RedGreen::SyntaxFactory`
+- `RedGreen::TextCursor`
+- `RedGreen::Lexer`
+- `RedGreen::Parser`
+- `RedGreen::SyntaxKindHelpers`
 
 ## Advanced Placeholders
 
 - `RedGreen::SyntaxAnnotation`
-- `RedGreen::Diagnostic`, `RedGreen::DiagnosticBag`
 - `RedGreen::StructuredTrivia`
 - `RedGreen::Directive`
 - `RedGreen::SkippedText`

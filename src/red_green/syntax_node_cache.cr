@@ -12,6 +12,7 @@ module RedGreen
     @@weak_cache = Hash(UInt64, WeakRef(GreenNode)).new
     @@strong_cache = Hash(UInt64, GreenNode).new
     @@strong_keys = Array(UInt64).new
+    @@strong_key_head = 0
     @@strong_max_size = 1024
 
     def self.strategy : Strategy
@@ -52,9 +53,16 @@ module RedGreen
     end
 
     def self.trim_strong_cache : Nil
-      while @@strong_cache.size > @@strong_max_size && !@@strong_keys.empty?
-        key = @@strong_keys.shift
+      while @@strong_cache.size > @@strong_max_size && @@strong_key_head < @@strong_keys.size
+        key = @@strong_keys[@@strong_key_head]
+        @@strong_key_head += 1
         @@strong_cache.delete(key)
+      end
+
+      # Periodically compact the key queue to avoid unbounded growth.
+      if @@strong_key_head > 1024 && @@strong_key_head > (@@strong_keys.size // 2)
+        @@strong_keys = @@strong_keys[@@strong_key_head, @@strong_keys.size - @@strong_key_head]
+        @@strong_key_head = 0
       end
     end
 

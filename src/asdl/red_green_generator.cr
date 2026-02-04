@@ -74,13 +74,13 @@ module Asdl
       end
       io << "      end\n"
       io << "    end\n"
-      io << "    def create_red(parent : RedGreen::SyntaxNode?, position : Int32) : RedGreen::SyntaxNode\n"
+      io << "    def create_red(parent : RedGreen::SyntaxNode?, position : Int32) : RedGreen::SyntaxNode | RedGreen::SyntaxToken | RedGreen::SyntaxTrivia\n"
       io << "      Red" << name << ".new(self, parent, position)\n"
       io << "    end\n"
       io << "  end\n"
       io << "  class Red" << name << " < RedGreen::SyntaxNode\n"
       io << "    def initialize(green : Green" << name << ", parent : RedGreen::SyntaxNode?, position : Int32)\n"
-      io << "      super(green, parent, position)\n"
+      io << "      super(green, parent, position, parent.try(&.syntax_tree))\n"
       io << "    end\n"
       fields.each do |field|
         if builtin?(field.type)
@@ -97,6 +97,28 @@ module Asdl
           io << "      child_at(#{idx})\n"
           io << "    end\n"
         end
+      end
+      io << "    def update(" << fields.map { |field| "#{field.name_or_type} : #{factory_arg_type(field)}" }.join(", ") << ") : Red" << name << "\n"
+      if fields.empty?
+        io << "      self\n"
+      else
+        checks = fields.map { |field| "#{field.name_or_type} == #{current_value_expr(field)}" }
+        io << "      return self if " << checks.join(" && ") << "\n"
+        io << "      green = Green" << name << ".new(#{fields.map { |field| factory_to_green(field) }.join(", ")})\n"
+        io << "      green.create_red(@parent, @position).as(Red" << name << ")\n"
+      end
+      io << "    end\n"
+      fields.each do |field|
+        io << "    def with_" << field.name_or_type << "(" << field.name_or_type << " : " << factory_arg_type(field) << ") : Red" << name << "\n"
+        args = fields.map do |other|
+          if other.name_or_type == field.name_or_type
+            other.name_or_type
+          else
+            current_value_expr(other)
+          end
+        end
+        io << "      update(" << args.join(", ") << ")\n"
+        io << "    end\n"
       end
       io << "  end\n"
     end
@@ -196,6 +218,14 @@ module Asdl
         "def #{field_name}? : #{return_type}\n      @green.as(Green#{name}).#{field_name}\n    end"
       else
         "def #{field_name} : #{return_type}\n      @green.as(Green#{name}).#{field_name}\n    end"
+      end
+    end
+
+    private def current_value_expr(field : FieldNode) : String
+      if field.seq? && node_field?(field)
+        "#{field.name_or_type}.to_a"
+      else
+        field.name_or_type
       end
     end
 
